@@ -1,20 +1,115 @@
-// ProyectoRedSocial.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream>
+#include "SocialNetwork.h"
 
-int main()
-{
-    std::cout << "Hello World!\n";
+void showMenu() {
+    std::cout << "------------------------------------" << std::endl;
+    std::cout << "|1. Agregar Usuario                |" << std::endl;
+    std::cout << "|2.Borrar Usuario                  |" << std::endl;
+    std::cout << "|3. Crear un conexion              |" << std::endl;
+    std::cout << "|4. Borrar un conexion             |" << std::endl;
+    std::cout << "|5. Buscar amigos en comun         |" << std::endl;
+    std::cout << "|6. Calcular el camino mas corto   |" << std::endl;
+    std::cout << "|7. Mostrar Usuarios               |" << std::endl;
+    std::cout << "|8. Mostrar  relaciones de Usuarios|" << std::endl;
+    std::cout << "|9. Salir                          |" << std::endl;
+    std::cout << "------------------------------------" << std::endl;
 }
+void populateInitialData(SocialNetwork& socialNetwork) {
+    socialNetwork.addUser("Alice", "Profile of Alice");
+    socialNetwork.addUser("Bob", "Profile of Bob");
+    socialNetwork.addUser("Charlie", "Profile of Charlie");
+    socialNetwork.addUser("David", "Profile of David");
 
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
+    socialNetwork.establishRelation("Alice", "Bob", "amigo");
+    socialNetwork.establishRelation("Alice", "Charlie", "amigo");
+    socialNetwork.establishRelation("Bob", "Charlie", "amigo");
+    socialNetwork.establishRelation("Charlie", "David", "amigo");
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+    socialNetwork.establishRelation("Alice", "David", "seguir");
+    socialNetwork.establishRelation("Bob", "David", "seguir");
+    socialNetwork.establishRelation("Charlie", "Alice", "seguir");
+}
+int main() {
+    SocialNetwork socialNetwork;
+    populateInitialData(socialNetwork);
+    int option;
+    std::string name, profile, name1, name2, type;
+    
+    do {
+        showMenu();
+        std::cout << "" << std::endl;
+        std::cout << "Seleccion una opcion: " << std::endl;
+        std::cout << "" << std::endl;
+        std::cin >> option;
+
+        switch (option) {
+        case 1:
+            std::cout << "Ingrese el nombre de usuario: ";
+            std::cin >> name;
+            std::cout << "Ingrese su informacion de perfil: ";
+            std::cin >> profile;
+            socialNetwork.addUser(name, profile);
+            break;
+        case 2:
+            std::cout << "Ingrese el nombre de usuario a borrar: ";
+            std::cin >> name;
+            socialNetwork.deleteUser(name);
+            break;
+        case 3:
+            std::cout << "Ingrese el nombre del primer usuario: ";
+            std::cin >> name1;
+            std::cout << "Ingrese el nombre del segundo usuario: ";
+            std::cin >> name2;
+            std::cout << "Ingrese el tipo de conexion(amigo/seguir): ";
+            std::cin >> type;
+            socialNetwork.establishRelation(name1, name2, type);
+            break;
+        case 4:
+            std::cout << "Ingrese el nombre del primer usuario: ";
+            std::cin >> name1;
+            std::cout << "Ingrese el nombre del segundo usuario: ";
+            std::cin >> name2;
+            std::cout << "Ingrese el tipo de conexion(amigo/seguir): ";
+            std::cin >> type;
+            socialNetwork.removeRelation(name1, name2, type);
+            break;
+        case 5:
+            std::cout << "Ingrese el nombre del primer usuario: ";
+            std::cin >> name1;
+            std::cout << "Ingrese el nombre del segundo usuario: ";
+            std::cin >> name2;
+            {
+                auto commonFriends = socialNetwork.findCommonFriends(name1, name2);
+                std::cout << "Amigos en comun: ";
+                for (auto* friendUser : commonFriends) {
+                    std::cout << friendUser->getUsername() << " ";
+                }
+                std::cout << std::endl;
+            }
+            break;
+        case 6:
+            std::cout << "Ingrese el nombre del primer usuario: ";
+            std::cin >> name1;
+            std::cout << "Ingrese el nombre del segundo usuario: ";
+            std::cin >> name2;
+            socialNetwork.calculateShortestPath(name1, name2);
+            break;
+        case 7:
+            socialNetwork.showUsers();
+            break;
+        case 8:
+            std::cout << "Ingrese el usuario: ";
+            std::cin >> name;
+            socialNetwork.showUserRelations(name);
+            break;
+        case 9:
+            std::cout << "Saliendo..." << std::endl;
+            break;
+        default:
+            std::cout << "Opcion no es valida." << std::endl;
+            break;
+        }
+    } while (option != 9);
+
+    return 0;
+}
