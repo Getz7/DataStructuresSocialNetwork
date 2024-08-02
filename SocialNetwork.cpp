@@ -16,15 +16,27 @@ void SocialNetwork::addUser(const std::string& userName, const std::string& prof
         std::cout << "Usuario " << userName << " agregado exitosamente." << std::endl;
     }
     else {
-        std::cout << "Usuario " << userName << "ya existe." << std::endl;
+        std::cout << "Usuario " << userName << " ya existe." << std::endl;
     }
 }
 
 void SocialNetwork::deleteUser(const std::string& userName) {
     auto it = users.find(userName);
     if (it != users.end()) {
-        delete it->second;
+        User* userToDelete = it->second;
+
+        // Actualizar las listas de amigos, seguidores y seguidos de todos los usuarios
+        for (auto& userPair : users) {
+            User* currentUser = userPair.second;
+            currentUser->deleteFriend(userToDelete);
+            currentUser->stopFollowing(userToDelete);
+            currentUser->removeFollower(userToDelete);
+        }
+
         users.erase(it);
+
+        delete userToDelete;
+
         std::cout << "Usuario " << userName << " borrado exitosamente." << std::endl;
     }
     else {
@@ -32,11 +44,19 @@ void SocialNetwork::deleteUser(const std::string& userName) {
     }
 }
 
+
 void SocialNetwork::establishRelation(const std::string& userName1, const std::string& userName2, const std::string& type) {
     if (users.find(userName1) != users.end() && users.find(userName2) != users.end()) {
-        Relation::Type connectionType = (type == "amigo") ? Relation::amigo : Relation::seguidor;
-        Relation::createConnection(users[userName1], users[userName2], connectionType);
-        std::cout << "Relacion establecida entre  " << userName1 << " y " << userName2 << "." << std::endl;
+        if (users.find(userName1) == users.find(userName2))
+        {
+            std::cout << "Un usuario no puede establecer una relacion consigo mismo." << std::endl;
+        }
+        else
+        {
+            Relation::Type connectionType = (type == "amigo") ? Relation::amigo : Relation::seguidor;
+            Relation::createConnection(users[userName1], users[userName2], connectionType);
+            std::cout << "Relacion establecida entre  " << userName1 << " y " << userName2 << "." << std::endl;
+        }
     }
     else {
         std::cout << "Uno o ambos usuarios no encontrados." << std::endl;
@@ -63,6 +83,9 @@ std::vector<User*> SocialNetwork::findCommonFriends(const std::string& userName1
         std::sort(friends2.begin(), friends2.end());
         std::set_intersection(friends1.begin(), friends1.end(), friends2.begin(), friends2.end(), std::back_inserter(commonFriends));
     }
+    else {
+        std::cout << "Uno o ambos usuarios no encontrados." << std::endl;
+    }
     return commonFriends;
 }
 void SocialNetwork::showUserRelations(const std::string& userName) const {
@@ -78,20 +101,32 @@ void SocialNetwork::showUserRelations(const std::string& userName) const {
     std::cout << "Informacion de Perfil: " << user->getProfile() << std::endl;
 
     std::cout << "Amigos: ";
-    for (const auto& friendUser : user->getFriends()) {
-        std::cout << friendUser->getUsername() << " ";
+    const auto& friends = user->getFriends();
+    for (size_t i = 0; i < friends.size(); ++i) {
+        std::cout << friends[i]->getUsername();
+        if (i != friends.size() - 1) {
+            std::cout << ", ";
+        }
     }
     std::cout << std::endl;
 
     std::cout << "Seguidores: ";
-    for (const auto& follower : user->getFollowers()) {
-        std::cout << follower->getUsername() << " ";
+    const auto& followers = user->getFollowers();
+    for (size_t i = 0; i < followers.size(); ++i) {
+        std::cout << followers[i]->getUsername();
+        if (i != followers.size() - 1) {
+            std::cout << ", ";
+        }
     }
     std::cout << std::endl;
 
     std::cout << "Seguidos: ";
-    for (const auto& followedUser : user->getFollowed()) {
-        std::cout << followedUser->getUsername() << " ";
+    const auto& followed = user->getFollowed();
+    for (size_t i = 0; i < followed.size(); ++i) {
+        std::cout << followed[i]->getUsername();
+        if (i != followed.size() - 1) {
+            std::cout << ", ";
+        }
     }
     std::cout << std::endl;
 }
